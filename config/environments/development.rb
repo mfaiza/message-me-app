@@ -14,18 +14,28 @@ Rails.application.configure do
 
   # Enable/disable caching. By default caching is disabled.
   # Run rails dev:cache to toggle caching.
-  if Rails.root.join('tmp', 'caching-dev.txt').exist?
+  # if Rails.root.join('tmp', 'caching-dev.txt').exist?
     config.action_controller.perform_caching = true
 
-    config.cache_store = :memory_store
+    redis_url = %w(redis://127.0.0.1:6379/0 redis://localhost:6379/0)
+    config.cache_store = :redis_cache_store, {driver: :hiredis, url: redis_url, 
+      connect_timeout:    60,
+      reconnect_attemps:  1,
+
+      error_handler: -> (method:, returning:, exception:) {
+        # Report errors to Sentry as Warning
+        Raven.capture_exception exception, level: 'warning',
+          tags: {method: method, returning: returning}
+      }
+    }
     config.public_file_server.headers = {
       'Cache-Control' => "public, max-age=#{2.days.to_i}"
     }
-  else
-    config.action_controller.perform_caching = false
+  # else
+  #   config.action_controller.perform_caching = false
 
-    config.cache_store = :null_store
-  end
+  #   config.cache_store = :null_store
+  # end
 
   # Store uploaded files on the local file system (see config/storage.yml for options)
   config.active_storage.service = :local
@@ -59,5 +69,5 @@ Rails.application.configure do
   # routes, locales, etc. This feature depends on the listen gem.
   config.file_watcher = ActiveSupport::EventedFileUpdateChecker
   config.action_cable.disable_request_forgery_protection = true
-  # config.action_cable.allowed_request_origin = [ fill the name of URL "https://mfaiza.com"]
+  config.action_cable.allowed_request_origins = [ "https://mfa-message-app.herokuapp.com/"]
 end

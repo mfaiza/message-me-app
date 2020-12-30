@@ -1,7 +1,9 @@
 <div class="event">
 	<div class="content">
 		<div class="summary">
-			<em><%= message.user.username %></em>: <%= message.body %>
+			<%= cache message do %>
+				<em><%= message.user.username %></em>: <%= message.body %>
+			<% end %>
 		</div>
 	</div>
 </div>

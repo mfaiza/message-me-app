@@ -1,0 +1,1 @@
+$redis = Redis.new(url: ENV['redis://localhost:6379/0'])
